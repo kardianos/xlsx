@@ -37,6 +37,8 @@ type Style struct {
 	ApplyAlignment  bool
 	Alignment       Alignment
 	NamedStyleIndex *int
+	Locked          bool
+	Hidden          bool
 }
 
 // Return a new Style structure initialised with the default values.

@@ -57,6 +57,30 @@ type xlsxWorksheet struct {
 	PageMargins     *xlsxPageMargins     `xml:"pageMargins,omitempty"`
 	PageSetUp       *xlsxPageSetUp       `xml:"pageSetup,omitempty"`
 	HeaderFooter    *xlsxHeaderFooter    `xml:"headerFooter,omitempty"`
+	SheetProtection *xlsxSheetProtection `xml:"sheetProtection,omitempty"`
+}
+
+type xlsxSheetProtection struct {
+	AlgorithmName      string `xml:"algorithmName,attr"` // SHA-256
+	HashValue          string `xml:"hashValue,attr"`
+	SaltValue          string `xml:"saltValue,attr"`
+	SpinCount          int    `xml:"spinCount,attr"`
+	AutoFilter         bool   `xml:"autoFilter,attr"`
+	DeleteColumns      bool   `xml:"deleteColumns,attr"`
+	DeleteRows         bool   `xml:"deleteRows,attr"`
+	FormatCells        bool   `xml:"formatCells,attr"`
+	FormatColumns      bool   `xml:"formatColumns,attr"`
+	FormatRows         bool   `xml:"formatRows,attr"`
+	InsertColumns      bool   `xml:"insertColumns,attr"`
+	InsertHyperlinks   bool   `xml:"insertHyperlinks,attr"`
+	InsertRows         bool   `xml:"insertRows,attr"`
+	Objects            bool   `xml:"objects,attr"`
+	PivotTables        bool   `xml:"pivotTables,attr"`
+	Scenarios          bool   `xml:"scenarios,attr"`
+	SelectLockedCells  bool   `xml:"selectLockedCells,attr"`
+	SelectUnlockedCell bool   `xml:"selectUnlockedCell,attr"`
+	Sheet              bool   `xml:"sheet,attr"`
+	Sort               bool   `xml:"sort,attr"`
 }
 
 // xlsxHeaderFooter directly maps the headerFooter element in the namespace

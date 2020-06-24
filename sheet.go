@@ -835,6 +835,13 @@ func (s *Sheet) makeXLSXSheet(refTable *RefTable, styles *xlsxStyleSheet, relati
 	return worksheet
 }
 
+type ProtectOptions struct {
+}
+
+func (s *Sheet) Protect(password string, opts ProtectOptions) error {
+	return nil
+}
+
 func handleStyleForXLSX(style *Style, NumFmtId int, styles *xlsxStyleSheet) (XfId int) {
 	xFont, xFill, xBorder, xCellXf := style.makeXLSXStyleElements()
 	fontId := styles.addFont(xFont)
@@ -861,6 +868,9 @@ func handleStyleForXLSX(style *Style, NumFmtId int, styles *xlsxStyleSheet) (XfI
 	xCellXf.Alignment.TextRotation = style.Alignment.TextRotation
 	xCellXf.Alignment.Vertical = style.Alignment.Vertical
 	xCellXf.Alignment.WrapText = style.Alignment.WrapText
+
+	xCellXf.Protection.Locked = style.Locked
+	xCellXf.Protection.Hidden = style.Hidden
 
 	XfId = styles.addCellXf(xCellXf)
 	return

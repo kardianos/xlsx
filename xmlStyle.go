@@ -294,6 +294,8 @@ func (styles *xlsxStyleSheet) populateStyleFromXf(style *Style, xf xlsxXf) {
 		style.Alignment.Indent = xf.Alignment.Indent
 	}
 
+	style.Locked = xf.Protection.Hidden
+	style.Hidden = xf.Protection.Hidden
 }
 
 func (styles *xlsxStyleSheet) getStyle(styleIndex int) *Style {
@@ -1060,18 +1062,19 @@ func (cellXfs *xlsxCellXfs) Marshal(outputBorderMap, outputFillMap, outputFontMa
 // currently I have not checked it for completeness - it does as much
 // as I need.
 type xlsxXf struct {
-	ApplyAlignment    bool          `xml:"applyAlignment,attr"`
-	ApplyBorder       bool          `xml:"applyBorder,attr"`
-	ApplyFont         bool          `xml:"applyFont,attr"`
-	ApplyFill         bool          `xml:"applyFill,attr"`
-	ApplyNumberFormat bool          `xml:"applyNumberFormat,attr"`
-	ApplyProtection   bool          `xml:"applyProtection,attr"`
-	BorderId          int           `xml:"borderId,attr"`
-	FillId            int           `xml:"fillId,attr"`
-	FontId            int           `xml:"fontId,attr"`
-	NumFmtId          int           `xml:"numFmtId,attr"`
-	XfId              *int          `xml:"xfId,attr,omitempty"`
-	Alignment         xlsxAlignment `xml:"alignment"`
+	ApplyAlignment    bool           `xml:"applyAlignment,attr"`
+	ApplyBorder       bool           `xml:"applyBorder,attr"`
+	ApplyFont         bool           `xml:"applyFont,attr"`
+	ApplyFill         bool           `xml:"applyFill,attr"`
+	ApplyNumberFormat bool           `xml:"applyNumberFormat,attr"`
+	ApplyProtection   bool           `xml:"applyProtection,attr"`
+	BorderId          int            `xml:"borderId,attr"`
+	FillId            int            `xml:"fillId,attr"`
+	FontId            int            `xml:"fontId,attr"`
+	NumFmtId          int            `xml:"numFmtId,attr"`
+	XfId              *int           `xml:"xfId,attr,omitempty"`
+	Alignment         xlsxAlignment  `xml:"alignment"`
+	Protection        xlsxProtection `xml:"protection,omitempty"`
 }
 
 func (xf *xlsxXf) Equals(other xlsxXf) bool {
@@ -1087,7 +1090,8 @@ func (xf *xlsxXf) Equals(other xlsxXf) bool {
 		(xf.XfId == other.XfId ||
 			((xf.XfId != nil && other.XfId != nil) &&
 				*xf.XfId == *other.XfId)) &&
-		xf.Alignment.Equals(other.Alignment)
+		xf.Alignment.Equals(other.Alignment) &&
+		xf.Protection == xf.Protection
 }
 
 func (xf *xlsxXf) Marshal(outputBorderMap, outputFillMap, outputFontMap map[int]int) (result string, err error) {
@@ -1100,7 +1104,11 @@ func (xf *xlsxXf) Marshal(outputBorderMap, outputFillMap, outputFontMap map[int]
 	if err != nil {
 		return result, err
 	}
-	return result + xAlignment + "</xf>", nil
+	xProtection, err := xf.Protection.Marshal()
+	if err != nil {
+		return result, err
+	}
+	return result + xAlignment + xProtection + "</xf>", nil
 }
 
 type xlsxAlignment struct {
@@ -1110,6 +1118,11 @@ type xlsxAlignment struct {
 	TextRotation int    `xml:"textRotation,attr"`
 	Vertical     string `xml:"vertical,attr"`
 	WrapText     bool   `xml:"wrapText,attr"`
+}
+
+type xlsxProtection struct {
+	Locked bool `xml:"locked,attr,omitempty"`
+	Hidden bool `xml:"hidden,attr,omitempty"`
 }
 
 func (alignment *xlsxAlignment) Equals(other xlsxAlignment) bool {
@@ -1129,6 +1142,13 @@ func (alignment *xlsxAlignment) Marshal() (result string, err error) {
 		alignment.Vertical = "bottom"
 	}
 	return fmt.Sprintf(`<alignment horizontal="%s" indent="%d" shrinkToFit="%b" textRotation="%d" vertical="%s" wrapText="%b"/>`, alignment.Horizontal, alignment.Indent, bool2Int(alignment.ShrinkToFit), alignment.TextRotation, alignment.Vertical, bool2Int(alignment.WrapText)), nil
+}
+
+func (p *xlsxProtection) Marshal() (result string, err error) {
+	if !p.Hidden && !p.Locked {
+		return "", nil
+	}
+	return fmt.Sprintf(`<protection locked="%d" hidden="%d"/>`, bool2Int(p.Locked), bool2Int(p.Hidden)), nil
 }
 
 func bool2Int(b bool) int {
